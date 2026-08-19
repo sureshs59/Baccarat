@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Baccarat Royal</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- ===== HEADER ===== -->
+<div id="header">
+  <div id="logo"><span class="suit"></span>♠</span> BACCARAT ROYAL <span class="suit">♠</span></div>
+  <div id="balance-area">
+    <div id="balance-box">
+      <span class="lbl">Balance</span>
+      <span>$<span id="balance">1000</span></span>
+    </div>
+    <button id="btn-reset">🔀 New Shoe</button>
+  </div>
+</div>
+
+<!-- ===== MAIN TABLE ===== -->
+<div id="table-wrap">
+
+  <!-- Shoe & Stats bar -->
+  <div id="stats-bar">
+    <span>Shoe: <b id="shoe-count">0</b>/416</span>
+    <span>Hand: <b id="hand-num">0</b></span>
+    <span class="stat-b">Banker: <b id="stat-b">0</b></span>
+    <span class="stat-p">Player: <b id="stat-p">0</b></span>
+    <span class="stat-t">Tie: <b id="stat-t">0</b></span>
+    <span class="stat-f7">Fortune 7: <b id="stat-f7">0</b></span>
+    <span class="stat-p8">Panda 8: <b id="stat-p8">0</b></span>
+  </div>
+
+  <!-- Card display area -->
+  <div id="card-table">
+    <div class="hand-section" id="sec-banker">
+      <div class="hand-label banker-lbl">BANKER</div>
+      <div class="hand-score" id="score-banker">0</div>
+      <div class="cards-row" id="cards-banker"></div>
+    </div>
+
+    <!-- Centre: result + payout -->
+    <div id="result-center">
+      <div id="result-flash"></div>
+      <div id="payout-display"></div>
+    </div>
+
+    <div class="hand-section" id="sec-player">
+      <div class="hand-label player-lbl">PLAYER</div>
+      <div class="hand-score" id="score-player">0</div>
+      <div class="cards-row" id="cards-player"></div>
+    </div>
+  </div>
+
+</div>
+<!-- end table-wrap -->
+
+<!-- ===== BETTING PANEL ===== -->
+<div id="bet-panel">
+
+  <div id="chip-row">
+    <span class="chip-label">Select Chip:</span>
+    <button class="chip" data-val="1">$1</button>
+    <button class="chip" data-val="5">$5</button>
+    <button class="chip" data-val="25">$25</button>
+    <button class="chip active" data-val="100">$100</button>
+    <button class="chip" data-val="500">$500</button>
+    <button id="btn-clear-bets">Clear Bets</button>
+    <button id="btn-rebet">Rebet</button>
+  </div>
+
+  <div id="bet-spots">
+
+    <!-- Tie (top center) -->
+    <div class="bet-spot tie-spot" id="spot-tie" onclick="addBet('tie')">
+      <div class="bet-name">TIE</div>
+      <div class="bet-odds">pays 8:1</div>
+      <div class="bet-chips" id="chips-tie"></div>
+      <div class="bet-amount">$<span id="bet-tie">0</span></div>
+    </div>
+
+    <!-- Player spot -->
+    <div class="bet-spot player-spot" id="spot-player" onclick="addBet('player')">
+      <div class="bet-name">PLAYER</div>
+      <div class="bet-odds">pays 1:1</div>
+      <div class="bet-chips" id="chips-player"></div>
+      <div class="bet-amount">$<span id="bet-player">0</span></div>
+    </div>
+
+    <!-- Banker spot -->
+    <div class="bet-spot banker-spot" id="spot-banker" onclick="addBet('banker')">
+      <div class="bet-name">BANKER</div>
+      <div class="bet-odds">pays 1:1</div>
+      <div class="bet-chips" id="chips-banker"></div>
+      <div class="bet-amount">$<span id="bet-banker">0</span></div>
+    </div>
+
+    <!-- Fortune 7 bonus -->
+    <div class="bet-spot fortune-spot" id="spot-fortune7" onclick="addBet('fortune7')">
+      <div class="bet-name">🌟 FORTUNE 7</div>
+      <div class="bet-odds">Banker 3-card 7 pays 40:1</div>
+      <div class="bet-chips" id="chips-fortune7"></div>
+      <div class="bet-amount">$<span id="bet-fortune7">0</span></div>
+    </div>
+
+    <!-- Panda 8 bonus -->
+    <div class="bet-spot panda-spot" id="spot-panda8" onclick="addBet('panda8')">
+      <div class="bet-name">🐼 PANDA 8</div>
+      <div class="bet-odds">Player 3-card 8 pays 25:1</div>
+      <div class="bet-chips" id="chips-panda8"></div>
+      <div class="bet-amount">$<span id="bet-panda8">0</span></div>
+    </div>
+
+  </div><!-- end bet-spots -->
+
+  <div id="action-row">
+    <button id="btn-deal" onclick="deal()">DEAL</button>
+  </div>
+
+</div><!-- end bet-panel -->
+
+<!-- ===== ROAD MAPS ===== -->
+<div id="roads-section">
+  <h2 class="roads-title">Road Maps</h2>
+
+  <div id="roads-grid">
+
+    <!-- Bead Plate -->
+    <div class="road-block">
+      <div class="road-title">Bead Plate <span class="road-legend"><span class="legend-dot red-dot"></span>B <span class="legend-dot blue-dot"></span>P <span class="legend-dot green-dot"></span>T</span></div>
+      <canvas id="road-bead" width="396" height="132"></canvas>
+    </div>
+
+    <!-- Big Road -->
+    <div class="road-block road-wide">
+      <div class="road-title">Big Road <span class="road-legend"><span class="legend-dot red-dot"></span>Banker <span class="legend-dot blue-dot"></span>Player</span></div>
+      <canvas id="road-big" width="792" height="132"></canvas>
+    </div>
+
+    <!-- Big Eye Boy -->
+    <div class="road-block road-derived" id="block-bigeye">
+      <div class="road-title">Big Eye Boy <span class="road-legend"><span class="legend-dot red-dot"></span>Repetitive <span class="legend-dot blue-dot"></span>Irregular</span></div>
+      <canvas id="road-bigeye" width="396" height="66"></canvas>
+    </div>
+
+    <!-- Small Road -->
+    <div class="road-block road-derived" id="block-small">
+      <div class="road-title">Small Road <span class="road-legend"><span class="legend-dot red-dot"></span>Repetitive <span class="legend-dot blue-dot"></span>Irregular</span></div>
+      <canvas id="road-small" width="396" height="66"></canvas>
+    </div>
+
+    <!-- Cockroach Road -->
+    <div class="road-block road-derived road-cockroach-block" id="block-cockroach">
+      <div class="road-title">🪳 Cockroach Road <span class="road-legend"><span class="legend-slash red-slash">/</span>Repetitive <span class="legend-slash blue-slash">/</span>Irregular</span></div>
+      <canvas id="road-cockroach" width="396" height="66"></canvas>
+    </div>
+
+  </div>
+</div>
+
+<!-- ===== COCKROACH ROAD EXPLANATION ===== -->
+<div id="cockroach-explain-section">
+  <h2 class="roads-title">🪳 Cockroach Road — Entry Explanations</h2>
+  <div id="cockroach-explain-intro">
+    <p>Each <strong>slash</strong> tells you whether the shoe is being <em>repetitive</em> or <em>irregular</em> at that moment, looking <strong>3 columns back</strong> in the Big Road.</p>
+    <div class="cockroach-legend-row">
+      <span class="cr-badge cr-red">/ RED — Repetitive</span>
+      <span class="cr-rule">The streak pattern is consistent: the previous column depth matches the reference column depth (3 back). The shoe is behaving predictably.</span>
+    </div>
+    <div class="cockroach-legend-row">
+      <span class="cr-badge cr-blue">/ BLUE — Irregular</span>
+      <span class="cr-rule">The streak pattern broke: column depths differ from 3 hands back. The shoe is choppy or shifting.</span>
+    </div>
+  </div>
+  <div id="cockroach-entries"></div>
+</div>
+
+<!-- ===== PREDICTION PANEL ===== -->
+<div id="prediction-section">
+  <h2 class="roads-title">🔮 Next Round Prediction</h2>
+  <div id="prediction-grid">
+
+    <div class="pred-card" id="pred-banker">
+      <div class="pred-icon">🏦</div>
+      <div class="pred-label">BANKER</div>
+      <div class="pred-pct" id="pred-pct-banker">—</div>
+      <div class="pred-bar-wrap"><div class="pred-bar banker-bar" id="pred-bar-banker"></div></div>
+    </div>
+
+    <div class="pred-card" id="pred-player">
+      <div class="pred-icon">🧑</div>
+      <div class="pred-label">PLAYER</div>
+      <div class="pred-pct" id="pred-pct-player">—</div>
+      <div class="pred-bar-wrap"><div class="pred-bar player-bar" id="pred-bar-player"></div></div>
+    </div>
+
+    <div class="pred-card" id="pred-tie">
+      <div class="pred-icon">🤝</div>
+      <div class="pred-label">TIE</div>
+      <div class="pred-pct" id="pred-pct-tie">—</div>
+      <div class="pred-bar-wrap"><div class="pred-bar tie-bar" id="pred-bar-tie"></div></div>
+    </div>
+
+    <div class="pred-insight" id="pred-insight">
+      <div class="pred-insight-title">📊 Pattern Analysis</div>
+      <div id="pred-insight-text">Play at least 3 hands to see predictions.</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ===== HISTORY TABLE ===== -->
+<div id="history-section">
+  <h2 class="roads-title">Hand History</h2>
+  <div style="overflow-x:auto">
+  <table id="history-table">
+    <thead>
+      <tr>
+        <th rowspan="2">#</th>
+        <th rowspan="2">Result</th>
+        <th rowspan="2">P Score</th>
+        <th rowspan="2">B Score</th>
+        <th colspan="5" class="th-group-bet">Bets Placed</th>
+        <th rowspan="2">Total Staked</th>
+        <th rowspan="2">Returned</th>
+        <th rowspan="2" class="th-net">Net</th>
+        <th rowspan="2">Bonus</th>
+        <th rowspan="2">Cards</th>
+      </tr>
+      <tr>
+        <th class="th-sub">Player</th>
+        <th class="th-sub">Banker</th>
+        <th class="th-sub">Tie</th>
+        <th class="th-sub">F7</th>
+        <th class="th-sub">P8</th>
+      </tr>
+    </thead>
+    <tbody id="history-body"></tbody>
+  </table>
+  </div>
+</div>
+
+<!-- ===== WIN/LOSS OVERLAY ===== -->
+<div id="round-payout-overlay">
+  <div class="overlay-inner">
+    <div class="overlay-result" id="overlay-result"></div>
+    <div class="overlay-amount" id="overlay-amount"></div>
+    <div class="overlay-bonuses" id="overlay-bonuses"></div>
+  </div>
+</div>
+
+<!-- ===== FORTUNE 7 3D POPUP ===== -->
+<div id="fortune7-popup" class="bonus-popup">
+  <div class="popup-backdrop"></div>
+  <div class="bonus-3d-container">
+    <div class="bonus-3d-card">
+      <div class="bonus-3d-front">
+        <div class="bonus-3d-content">
+          <div class="bonus-star">⭐</div>
+          <h2 class="bonus-title">FORTUNE 7</h2>
+          <div class="bonus-multiplier">×40</div>
+          <p class="bonus-subtitle">Banker 3-Card 7</p>
+        </div>
+      </div>
+      <div class="bonus-3d-back">
+        <div class="bonus-3d-back-content">
+          <div class="back-glow"></div>
+          <p class="back-text">JACKPOT!</p>
+        </div>
+      </div>
+    </div>
+    <div class="bonus-particles">
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PANDA 8 3D POPUP ===== -->
+<div id="panda8-popup" class="bonus-popup">
+  <div class="popup-backdrop"></div>
+  <div class="bonus-3d-container">
+    <div class="bonus-3d-card">
+      <div class="bonus-3d-front">
+        <div class="bonus-3d-content">
+          <div class="bonus-panda">🐼</div>
+          <h2 class="bonus-title">PANDA 8</h2>
+          <div class="bonus-multiplier">×25</div>
+          <p class="bonus-subtitle">Player 3-Card 8</p>
+        </div>
+      </div>
+      <div class="bonus-3d-back">
+        <div class="bonus-3d-back-content">
+          <div class="back-glow"></div>
+          <p class="back-text">JACKPOT!</p>
+        </div>
+      </div>
+    </div>
+    <div class="bonus-particles">
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== WIN / PAYOUT TOAST ===== -->
+<div id="toast"></div>
+
+<script src="game.js"></script>
+</body>
+</html>
