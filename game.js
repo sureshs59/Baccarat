@@ -606,6 +606,8 @@ function drawBeadPlate() {
     const cy = row * cell + cell/2;
     if (cx + cell/2 > c.width) return; // off canvas
 
+    const isFortune7 = h.winner === 'banker' && h.bCards && h.bCards.length === 3 && h.bScore === 7;
+    const isPanda8   = h.winner === 'player' && h.pCards && h.pCards.length === 3 && h.pScore === 8;
     const color = h.winner === 'banker' ? R_COL_B : h.winner === 'player' ? R_COL_P : R_COL_T;
     filledCircle(ctx, cx, cy, cell/2 - 2, color);
 
@@ -618,6 +620,15 @@ function drawBeadPlate() {
     else if (h.winner === 'player') label = String(h.pScore);
     else                            label = 'T';
     ctx.fillText(label, cx, cy);
+
+    // Bonus markers for special outcomes
+    if (isFortune7 || isPanda8) {
+      ctx.fillStyle = '#fff';
+      ctx.font = `${Math.floor(cell*0.46)}px sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(isFortune7 ? '🐉' : '🐼', cx, cy - cell * 0.28);
+    }
   });
 }
 
@@ -794,7 +805,7 @@ function drawSlash(ctx, cx, cy, r, color) {
   ctx.restore();
 }
 
-// Draw one derived road canvas.  useSlash=true → Cockroach Road spikes
+// Draw one derived road canvas. useSlash=true → Cockroach Road spikes
 function drawDerivedRoad(canvasId, entries, cellSize, useSlash) {
   const { c, ctx } = clearCanvas(canvasId);
   const ROWS = 6;
@@ -802,39 +813,34 @@ function drawDerivedRoad(canvasId, entries, cellSize, useSlash) {
 
   const r = cellSize / 2 - 1.5;
 
-  // For Cockroach Road: separate red and blue into two columns
-  if (useSlash) {
-    const redEntries = entries.filter(color => color === 'red');
-    const blueEntries = entries.filter(color => color === 'blue');
-    
-    // Draw red spikes in column 0
-    redEntries.forEach((color, i) => {
-      const row = i % ROWS;
-      const cx = cellSize / 2;
-      const cy = row * cellSize + cellSize / 2;
-      drawSlash(ctx, cx, cy, r, R_COL_B);
-    });
-    
-    // Draw blue spikes in column 1
-    blueEntries.forEach((color, i) => {
-      const row = i % ROWS;
-      const cx = cellSize + cellSize / 2;
-      const cy = row * cellSize + cellSize / 2;
-      drawSlash(ctx, cx, cy, r, R_COL_P);
-    });
-  } else {
-    // Regular circle layout for Big Eye Boy and Small Road
-    entries.forEach((color, i) => {
-      const col = Math.floor(i / ROWS);
-      const row = i % ROWS;
-      const cx  = col * cellSize + cellSize / 2;
-      const cy  = row * cellSize + cellSize / 2;
-      if (cx + cellSize > c.width) return;
+  let currentColor = null;
+  let currentCol = -1;
+  let currentRow = 0;
 
-      const strokeColor = color === 'red' ? R_COL_B : R_COL_P;
+  entries.forEach((color, i) => {
+    if (i === 0 || color !== currentColor) {
+      currentColor = color;
+      currentCol += 1;
+      currentRow = 0;
+    } else {
+      currentRow += 1;
+      if (currentRow >= ROWS) {
+        currentCol += 1;
+        currentRow = 0;
+      }
+    }
+
+    const cx = currentCol * cellSize + cellSize / 2;
+    const cy = currentRow * cellSize + cellSize / 2;
+    if (cx + cellSize > c.width) return;
+
+    const strokeColor = color === 'red' ? R_COL_B : R_COL_P;
+    if (useSlash) {
+      drawSlash(ctx, cx, cy, r, strokeColor);
+    } else {
       hollowCircle(ctx, cx, cy, r, strokeColor, 2);
-    });
-  }
+    }
+  });
 }
 
 function drawDerivedRoads() {
@@ -868,7 +874,6 @@ function renderCockroachExplanation() {
     let isRed, reason, prevDepth, refDepth;
 
     if (row === 0) {
-      // Count depths
       prevDepth = bigCells.filter(c => c.col === col - 1).length;
       refDepth  = bigCells.filter(c => c.col === col - colOffset).length;
       const prevDeep = getCellAt(bigCells, col - 1, 1) !== null;
@@ -876,9 +881,9 @@ function renderCockroachExplanation() {
       isRed = prevDeep === refDeep;
 
       if (isRed) {
-        reason = `New streak started. Previous column (col ${col}) depth = ${prevDepth}, reference column (col ${col - colOffset}) depth = ${refDepth}. Both ${prevDeep ? '≥2' : '=1'} — pattern is consistent → <strong>Repetitive</strong>.`;
+        reason = `New streak started. Previous column (col ${col - 1}) depth = ${prevDepth}, reference column (col ${col - colOffset}) depth = ${refDepth}. Both ${prevDeep ? '≥2' : '=1'} — pattern is consistent → <strong>Repetitive</strong>.`;
       } else {
-        reason = `New streak started. Previous column (col ${col}) depth = ${prevDepth} (${prevDeep ? '≥2' : '=1'}), reference column (col ${col - colOffset}) depth = ${refDepth} (${refDeep ? '≥2' : '=1'}). Depths differ → <strong>Irregular</strong>.`;
+        reason = `New streak started. Previous column (col ${col - 1}) depth = ${prevDepth} (${prevDeep ? '≥2' : '=1'}), reference column (col ${col - colOffset}) depth = ${refDepth} (${refDeep ? '≥2' : '=1'}). Depths differ → <strong>Irregular</strong>.`;
       }
     } else {
       const prevHasRow = getCellAt(bigCells, col - 1, row) !== null;
